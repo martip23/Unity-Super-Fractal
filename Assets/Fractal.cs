@@ -24,7 +24,7 @@ public class Fractal : MonoBehaviour {
 				Color.Lerp (Color.blue, Color.red, t);
 			materials [i, 1] = new Material (material);
 			materials [i, 1].color =
-				Color.Lerp (Color.white, Color.cyan, t);
+				Color.Lerp (Color.yellow, Color.cyan, t);
 		}
 		materials [maxDepth, 0].color = Color.green;
 		materials [maxDepth, 1].color = Color.cyan;
