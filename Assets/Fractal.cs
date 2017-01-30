@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Collections;
 
 public class Fractal : MonoBehaviour {
@@ -10,7 +11,14 @@ public class Fractal : MonoBehaviour {
 
 	public float childScale;
 	public int maxDepth;
+	public float maxRotationSpeed;
+	public Color color1;
+	public Color color2;
+	public Color color3;
+	public Color color4;
+	public float maxTwist;
 
+	private float rotationSpeed;
 	private int depth;
 	private Material[,] materials;
 
@@ -21,16 +29,17 @@ public class Fractal : MonoBehaviour {
 			t *= t;
 			materials [i, 0] = new Material (material);
 			materials [i, 0].color = 
-				Color.Lerp (Color.blue, Color.red, t);
+				Color.Lerp (color1, color2, t);
 			materials [i, 1] = new Material (material);
 			materials [i, 1].color =
-				Color.Lerp (Color.yellow, Color.cyan, t);
+				Color.Lerp (color3, color4, t);
 		}
 		materials [maxDepth, 0].color = Color.green;
 		materials [maxDepth, 1].color = Color.cyan;
 	}
 
 	private void Start () {
+		rotationSpeed = Random.Range (-maxRotationSpeed, maxRotationSpeed);
 		if (materials == null) {
 			InitializeMaterials ();
 		}
@@ -40,11 +49,14 @@ public class Fractal : MonoBehaviour {
 			materials[depth, Random.Range(0,2)];
 		if (depth < maxDepth) {
 			StartCoroutine (CreateChildren ());
+			transform.Rotate (Random.Range (-maxTwist, maxTwist), 0f, 0f);
 		}
 	}
 
 	private void Initialize (Fractal parent, int childIndex) {
+		maxRotationSpeed = parent.maxRotationSpeed;
 		meshes = parent.meshes;
+		spawnProbability = parent.spawnProbability;
 		materials = parent.materials;
 		maxDepth = parent.maxDepth;
 		depth = parent.depth+1;
@@ -54,6 +66,7 @@ public class Fractal : MonoBehaviour {
 		transform.localPosition = 
 			childDirections[childIndex] * (0.5f + 0.5f * childScale);
 		transform.localRotation = childOrientations[childIndex];
+		maxTwist = parent.maxTwist;
 	}
 
 	private static Vector3[] childDirections = {
@@ -74,9 +87,19 @@ public class Fractal : MonoBehaviour {
 
 	private IEnumerator CreateChildren() {
 		for (int i = 0; i < childDirections.Length; i++) {
-			yield return new WaitForSeconds(Random.Range(0.1f,0.5f));
-			new GameObject("Fractal Child").AddComponent<Fractal>().
-			Initialize(this, i);
+			if (Random.value < spawnProbability) {
+				yield return new WaitForSeconds (Random.Range (0.1f, 0.5f));
+				new GameObject ("Fractal Child").AddComponent<Fractal> ().
+				Initialize (this, i);
+			}
 		}
+	}
+	private void Update () {
+		transform.Rotate (0f, rotationSpeed * Time.deltaTime, 0f);
+
+		if (Input.GetKeyDown(KeyCode.Escape) && false) {
+			SceneManager.LoadScene ("Scene");
+		}
+
 	}
 }
